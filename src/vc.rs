@@ -14,6 +14,7 @@ pub struct VC<T>
 where
     T: Proof + Serialize,
 {
+    #[serde(rename = "@context")]
     contexts: Vec<Value>,
     types: Vec<String>,
     id: String,
