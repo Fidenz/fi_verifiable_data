@@ -2,21 +2,17 @@ use std::collections::HashMap;
 
 use chrono::{DateTime, Utc};
 use fi_digital_signatures::algorithms::Algorithm;
-use serde::{
-    de::{self, DeserializeOwned},
-    Deserialize, Serialize,
-};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::{
     constants::FIELD_CASTING_ERROR, document::VerificationDocument, error::Error, proof::Proof,
-    vp::VP,
 };
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct VC<T>
 where
-    T: Proof + Serialize + DeserializeOwned,
+    T: Proof + Serialize,
 {
     #[serde(rename = "@context")]
     contexts: Vec<Value>,
@@ -226,14 +222,15 @@ impl<T: Proof + Serialize + DeserializeOwned> VC<T> {
     }
 
     pub fn from(value: Value) -> Result<Self, Error> {
-        let map: HashMap<String, Box<Value>> = HashMap::new();
+        let mut map: HashMap<String, Box<Value>> = HashMap::new();
 
-        let deserialized_value: Result<VC<T>, serde_json::Error> =
-            serde_ignored::deserialize(value, |path| {
-                let value_to_save = value.get(path).unwrap();
-                map.insert(String::from(path), Box::new(value));
-            });
-
-        return Ok(deserialized_value);
+        match serde_ignored::deserialize(&value, |path| {
+            let _path = path.to_string();
+            let value_to_save = value[&_path].clone();
+            map.insert(_path, Box::new(value_to_save));
+        }) {
+            Ok(val) => return Ok(val),
+            Err(error) => return Err(Error::new(error.to_string().as_str())),
+        };
     }
 }
