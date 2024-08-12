@@ -16,7 +16,7 @@ pub trait Proof {
     fn verify(&self, doc: VerificationDocument, content: String) -> Result<bool, Error>;
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct FiProof {
     #[serde(rename = "type")]
     _type: String,

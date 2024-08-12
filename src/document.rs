@@ -11,12 +11,22 @@ pub struct VerificationDocument {
     pub id: String,
 }
 
-struct DocumentLoader<T: DocResolver> {
+pub struct DocumentLoader {
     docs: HashMap<String, VerificationDocument>,
-    doc_resolvers: Vec<T>,
+    doc_resolvers: Vec<Box<dyn DocResolver>>,
 }
 
-impl<T: DocResolver> DocumentLoader<T> {
+impl DocumentLoader {
+    pub fn new(docs: Option<HashMap<String, VerificationDocument>>) -> Self {
+        return DocumentLoader {
+            doc_resolvers: Vec::new(),
+            docs: match docs {
+                Some(val) => val,
+                None => HashMap::new(),
+            },
+        };
+    }
+
     pub fn get_verification_document(&mut self, url: &str) -> Option<VerificationDocument> {
         if self.docs.contains_key(url) {
             let val: VerificationDocument = match self.docs.get_key_value(url) {

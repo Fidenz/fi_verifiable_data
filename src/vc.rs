@@ -1,13 +1,19 @@
-use std::{any::Any, collections::HashMap};
+use std::collections::HashMap;
 
 use chrono::{DateTime, Utc};
+use fi_digital_signatures::algorithms::Algorithm;
 use serde::{Deserialize, Serialize};
-use serde_json::{error, Value};
+use serde_json::Value;
 
-use crate::{constants::FIELD_CASTING_ERROR, error::Error, proof::Proof};
+use crate::{
+    constants::FIELD_CASTING_ERROR, document::VerificationDocument, error::Error, proof::Proof,
+};
 
 #[derive(Serialize, Deserialize)]
-pub struct VC<T: Proof + Serialize> {
+pub struct VC<T>
+where
+    T: Proof + Serialize,
+{
     contexts: Vec<Value>,
     types: Vec<String>,
     id: String,
@@ -137,7 +143,45 @@ impl<T: Proof + Serialize> VC<T> {
         self.evidence = evidence;
     }
 
-    pub fn sign() {}
+    pub fn sign(
+        &mut self,
+        doc: VerificationDocument,
+        alg: Algorithm,
+        purpose: String,
+    ) -> Result<(), Error> {
+        let signable_values = match self.get_signable_content() {
+            Err(error) => {
+                return Err(error);
+            }
+            Ok(val) => val,
+        };
+
+        let proof = match T::sign(doc, alg, signable_values.to_string(), purpose) {
+            Err(error) => {
+                return Err(error);
+            }
+            Ok(val) => val,
+        };
+
+        self.proof = Some(*proof);
+        return Ok(());
+    }
+
+    pub fn verify(&mut self, doc: VerificationDocument) -> Result<bool, Error> {
+        let signable_values = match self.get_signable_content() {
+            Err(error) => {
+                return Err(error);
+            }
+            Ok(val) => val,
+        };
+
+        let proof = match self.proof.as_mut() {
+            None => return Err(Error::new("message")),
+            Some(val) => val,
+        };
+
+        proof.verify(doc, signable_values.to_string())
+    }
 
     pub fn to_object(&mut self) -> Result<Value, Error> {
         let mut value = match serde_json::to_value(&self) {
@@ -168,5 +212,10 @@ impl<T: Proof + Serialize> VC<T> {
         val.as_object_mut().unwrap().remove("proof");
 
         return Ok(val.clone());
+    }
+
+    pub fn add_field(&mut self, key: &str, val: Value) {
+        self.optional_fields
+            .insert(String::from(key), Box::new(val));
     }
 }
