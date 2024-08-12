@@ -16,6 +16,7 @@ where
 {
     #[serde(rename = "@context")]
     contexts: Vec<Value>,
+    #[serde(rename = "type")]
     types: Vec<String>,
     id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
