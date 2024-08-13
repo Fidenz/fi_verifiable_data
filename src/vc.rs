@@ -1,4 +1,7 @@
-use std::collections::HashMap;
+use std::{
+    borrow::{Borrow, BorrowMut},
+    collections::HashMap,
+};
 
 use chrono::{DateTime, Utc};
 use fi_digital_signatures::algorithms::Algorithm;
@@ -143,6 +146,14 @@ impl<T: Proof + Serialize + DeserializeOwned> VC<T> {
 
     pub fn set_evidence(&mut self, evidence: Option<Value>) {
         self.evidence = evidence;
+    }
+
+    pub fn get_proof(&self) -> &Option<T> {
+        self.proof.borrow()
+    }
+
+    pub fn get_proof_mut(&mut self) -> &mut Option<T> {
+        self.proof.borrow_mut()
     }
 
     pub fn sign(
