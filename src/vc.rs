@@ -224,7 +224,7 @@ impl<T: Proof + Serialize + DeserializeOwned> VC<T> {
 
         val.as_object_mut().unwrap().remove("proof");
 
-        return Ok(val.clone());
+        return Ok(val);
     }
 
     pub fn add_field(&mut self, key: &str, val: Value) {
