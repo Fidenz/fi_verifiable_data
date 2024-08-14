@@ -189,7 +189,7 @@ impl<T: Proof + Serialize + DeserializeOwned> VC<T> {
         };
 
         let proof = match self.proof.as_mut() {
-            None => return Err(Error::new("message")),
+            None => return Err(Error::new("Cannot get proof as a mutable reference")),
             Some(val) => val,
         };
 
