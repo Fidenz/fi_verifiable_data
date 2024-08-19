@@ -1,10 +1,15 @@
 use core::fmt::Display;
 
+use wasm_bindgen::prelude::wasm_bindgen;
+
+#[wasm_bindgen]
 pub struct Error {
     message: String,
 }
 
+#[wasm_bindgen]
 impl Error {
+    #[wasm_bindgen(constructor)]
     pub fn new(message: &str) -> Error {
         return Error {
             message: String::from(message),
