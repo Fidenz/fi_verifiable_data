@@ -1,22 +1,23 @@
 use std::{
-    any::Any,
     borrow::{Borrow, BorrowMut},
     collections::HashMap,
 };
 
 use chrono::{DateTime, Utc};
+#[cfg(feature = "wasm")]
 use fi_digital_signatures::algorithms::Algorithm;
+#[cfg(feature = "wasm")]
 use js_sys::{Array, Object};
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+use wasm_bindgen::prelude::wasm_bindgen;
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::JsValue;
+#[cfg(feature = "wasm")]
 use wasm_bindgen_struct::wasm_bindgen_struct;
 
 use crate::{
-    constants::FIELD_CASTING_ERROR,
-    document::VerificationDocument,
-    error::Error,
-    proof::{Proof, ProofType},
+    constants::FIELD_CASTING_ERROR, document::VerificationDocument, error::Error, proof::ProofType,
 };
 
 #[cfg(not(feature = "wasm"))]
@@ -255,6 +256,7 @@ impl VC {
 #[cfg(feature = "wasm")]
 #[wasm_bindgen]
 impl VC {
+    #[wasm_bindgen(constructor)]
     pub fn new(
         id: String,
         issuer: JsValue,
@@ -266,24 +268,42 @@ impl VC {
         let datetime = Utc::now().to_rfc3339();
         let mut vc: HashMap<String, Box<JsValue>> = HashMap::new();
 
-        let types: Vec<JsValue> = Vec::new();
+        let mut types: Vec<JsValue> = Vec::new();
         types.push(JsValue::from_str("VerifiableCredential"));
 
-        vc["type"] = Box::new(JsValue::from(types));
-        vc["@context"] = Box::new(JsValue::from_str("{}"));
-        vc["credentialSubject"] = Box::new(JsValue::from_str("{}"));
-        vc["evidence"] = Box::new(JsValue::from_str("{}"));
-        vc["id"] = Box::new(JsValue::from_str("{}"));
-        vc["name"] = Box::new(JsValue::from_str("{}"));
-        vc["description"] = Box::new(JsValue::from_str("{}"));
-        vc["issuer"] = Box::new(JsValue::from_str("{}"));
-        vc["validFrom"] = Box::new(JsValue::from_str("{}"));
-        vc["validUntil"] = Box::new(valid_until);
-        vc["credentialStatus"] = Box::new(JsValue::from_str("{}"));
-        vc["credentialSchema"] = Box::new(JsValue::from_str("{}"));
-        vc["proof"] = Box::new(JsValue::from_str("{}"));
-        vc["termsOfUse"] = Box::new(JsValue::from_str("{}"));
-        vc["refreshService"] = Box::new(JsValue::from_str("{}"));
+        vc.insert(String::from("type"), Box::new(JsValue::from(types)));
+        vc.insert(String::from("@context"), Box::new(JsValue::from_str("[]")));
+        vc.insert(
+            String::from("credentialSubject"),
+            Box::new(JsValue::from_str("{}")),
+        );
+        vc.insert(String::from("evidence"), Box::new(JsValue::from_str("{}")));
+        vc.insert(String::from("id"), Box::new(JsValue::from_str("{}")));
+        vc.insert(String::from("name"), Box::new(JsValue::from_str("{}")));
+        vc.insert(
+            String::from("description"),
+            Box::new(JsValue::from_str("{}")),
+        );
+        vc.insert(String::from("issuer"), Box::new(JsValue::from_str("{}")));
+        vc.insert(String::from("validFrom"), Box::new(JsValue::from_str("{}")));
+        vc.insert(String::from("validUntil"), Box::new(valid_until));
+        vc.insert(
+            String::from("credentialStatus"),
+            Box::new(JsValue::from_str("{}")),
+        );
+        vc.insert(
+            String::from("credentialSchema"),
+            Box::new(JsValue::from_str("{}")),
+        );
+        vc.insert(String::from("proof"), Box::new(JsValue::null()));
+        vc.insert(
+            String::from("termsOfUse"),
+            Box::new(JsValue::from_str("{}")),
+        );
+        vc.insert(
+            String::from("refreshService"),
+            Box::new(JsValue::from_str("{}")),
+        );
 
         VC(vc)
     }
@@ -295,13 +315,15 @@ impl VC {
 
             arr.push(&issuer.clone());
 
-            self.0["issuer"] = Box::new(JsValue::from(arr));
+            self.0
+                .insert(String::from("issuer"), Box::new(JsValue::from(arr)));
         } else {
             let arr = js_sys::Array::new();
             arr.push(&self.0["issuer"].to_owned());
             arr.push(&issuer.clone());
 
-            self.0["issuer"] = Box::new(JsValue::from(arr));
+            self.0
+                .insert(String::from("issuer"), Box::new(JsValue::from(arr)));
         }
 
         return Ok(());
@@ -309,12 +331,12 @@ impl VC {
 
     #[wasm_bindgen(js_name = "setIsser")]
     pub fn set_issuer(&mut self, issuer: JsValue) {
-        self.0["issuer"] = Box::new(issuer);
+        self.0.insert(String::from("issuer"), Box::new(issuer));
     }
 
     #[wasm_bindgen(js_name = "setContext")]
     pub fn set_context(&mut self, contexts: JsValue) {
-        self.0["@context"] = Box::new(contexts);
+        self.0.insert(String::from("@context"), Box::new(contexts));
     }
 
     #[wasm_bindgen(js_name = "addContext")]
@@ -324,13 +346,15 @@ impl VC {
 
             arr.push(&context.clone());
 
-            self.0["@context"] = Box::new(JsValue::from(arr));
+            self.0
+                .insert(String::from("@context"), Box::new(JsValue::from(arr)));
         } else {
             let arr = js_sys::Array::new();
             arr.push(&self.0["@context"].to_owned());
             arr.push(&context.clone());
 
-            self.0["@context"] = Box::new(JsValue::from(arr));
+            self.0
+                .insert(String::from("@context"), Box::new(JsValue::from(arr)));
         }
 
         return Ok(());
@@ -343,13 +367,15 @@ impl VC {
 
             arr.push(&_type.clone());
 
-            self.0["type"] = Box::new(JsValue::from(arr));
+            self.0
+                .insert(String::from("type"), Box::new(JsValue::from(arr)));
         } else {
             let arr = js_sys::Array::new();
             arr.push(&self.0["type"].to_owned());
             arr.push(&_type.clone());
 
-            self.0["type"] = Box::new(JsValue::from(arr));
+            self.0
+                .insert(String::from("type"), Box::new(JsValue::from(arr)));
         }
 
         return Ok(());
@@ -357,42 +383,50 @@ impl VC {
 
     #[wasm_bindgen(js_name = "setType")]
     pub fn set_type(&mut self, _type: JsValue) {
-        self.0["type"] = Box::new(_type);
+        self.0.insert(String::from("type"), Box::new(_type));
     }
 
     #[wasm_bindgen(js_name = "setCredentialStatus")]
     pub fn set_credential_status(&mut self, credential_status: JsValue) {
-        self.0["credentialStatus"] = Box::new(credential_status);
+        self.0.insert(
+            String::from("credentialStatus"),
+            Box::new(credential_status),
+        );
     }
 
     #[wasm_bindgen(js_name = "setCredentialSchemas")]
     pub fn set_credential_schemas(&mut self, credential_schema: JsValue) {
-        self.0["credentialSchema"] = Box::new(credential_schema);
+        self.0.insert(
+            String::from("credentialSchema"),
+            Box::new(credential_schema),
+        );
     }
 
     #[wasm_bindgen(js_name = "setExpire")]
     pub fn set_expire(&mut self, expire: JsValue) {
-        self.0["expire"] = Box::new(expire);
+        self.0.insert(String::from("expire"), Box::new(expire));
     }
 
     #[wasm_bindgen(js_name = "setTermsOfUse")]
     pub fn set_terms_of_use(&mut self, terms_of_use: JsValue) {
-        self.0["termsOfUse"] = Box::new(terms_of_use);
+        self.0
+            .insert(String::from("termsOfUse"), Box::new(terms_of_use));
     }
 
     #[wasm_bindgen(js_name = "setRefreshService")]
     pub fn set_refresh_service(&mut self, refresh_service: JsValue) {
-        self.0["refreshService"] = Box::new(refresh_service);
+        self.0
+            .insert(String::from("refreshService"), Box::new(refresh_service));
     }
 
     #[wasm_bindgen(js_name = "setEvidence")]
     pub fn set_evidence(&mut self, evidence: JsValue) {
-        self.0["issuer"] = Box::new(evidence);
+        self.0.insert(String::from("issuer"), Box::new(evidence));
     }
 
     #[wasm_bindgen(js_name = "getProof")]
     pub fn get_proof(&self) -> JsValue {
-        *self.0["proof"]
+        *self.0["proof"].clone()
     }
 
     #[wasm_bindgen]
@@ -417,7 +451,7 @@ impl VC {
             Ok(val) => val,
         };
 
-        self.0["proof"] = Box::new(proof);
+        self.0.insert(String::from("proof"), Box::new(proof));
         return Ok(());
     }
 
@@ -434,7 +468,7 @@ impl VC {
             Ok(val) => val,
         };
 
-        proof_type.verify(doc, signable_values.to_string(), *self.0["proof"])
+        proof_type.verify(doc, signable_values.to_string(), *self.0["proof"].clone())
     }
 
     #[wasm_bindgen(js_name = "toObject")]
@@ -449,27 +483,28 @@ impl VC {
 
     #[wasm_bindgen(js_name = "getSignableContent")]
     pub fn get_signable_content(&mut self) -> Result<String, Error> {
-        let mut val = match self.to_object() {
+        let val = match self.to_object() {
             Err(error) => {
                 return Err(error);
             }
             Ok(val) => val,
         };
 
-        js_sys::Reflect::delete_property(&val, &JsValue::from_str("proof"));
+        match js_sys::Reflect::delete_property(&val, &JsValue::from_str("proof")) {
+            Err(error) => return Err(Error::new(error.as_string().unwrap().as_str())),
+            Ok(val) => {}
+        };
 
         return Ok(val.to_string().into());
     }
 
     #[wasm_bindgen(js_name = "addField")]
     pub fn add_field(&mut self, key: &str, val: JsValue) {
-        self.0[key] = Box::new(val);
+        self.0.insert(String::from(key), Box::new(val));
     }
 
     #[wasm_bindgen]
     pub fn from(value: JsValue) -> Result<VC, Error> {
-        let mut map: HashMap<String, Box<JsValue>> = HashMap::new();
-
         let keys = match js_sys::Reflect::own_keys(&value) {
             Ok(val) => val,
             Err(error) => return Err(Error::new(error.as_string().unwrap().as_str())),

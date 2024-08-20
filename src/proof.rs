@@ -1,11 +1,11 @@
-use std::borrow::Borrow;
-
 use chrono::Utc;
 use fi_digital_signatures::{
     algorithms::Algorithm, signer::get_signing_key, verifier::get_verifying_key,
 };
+#[cfg(feature = "wasm")]
 use js_sys::Object;
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "wasm")]
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 use crate::{document::VerificationDocument, error::Error};
@@ -26,7 +26,6 @@ pub struct FiProof {
     jws: Option<String>,
 }
 
-#[cfg(not(feature = "wasm"))]
 impl Proof for FiProof {
     fn sign(&mut self, mut doc: VerificationDocument, content: String) -> Result<(), Error> {
         let key_bytes = match doc.get_private_key_mut() {
@@ -50,8 +49,6 @@ impl Proof for FiProof {
                 return Err(Error::new("Failed to get signing key"));
             }
         };
-
-        let datetime = Utc::now().to_rfc3339();
 
         match signing_key.sign(content, alg) {
             Ok(val) => {
