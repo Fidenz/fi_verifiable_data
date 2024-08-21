@@ -73,7 +73,7 @@ impl VC {
         let mut vc = VC {
             contexts: Vec::new(),
             types: Vec::new(),
-            credential_subject: Value::from("{}"),
+            credential_subject: Value::Null,
             evidence: None,
             id,
             name,
