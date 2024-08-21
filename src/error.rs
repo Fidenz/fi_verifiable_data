@@ -3,6 +3,7 @@ use core::fmt::Display;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 #[wasm_bindgen]
+#[derive(Debug)]
 pub struct Error {
     message: String,
 }
