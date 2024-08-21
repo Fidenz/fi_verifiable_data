@@ -24,6 +24,18 @@ pub struct VerificationDocument {
 }
 
 impl VerificationDocument {
+    pub fn new(
+        id: String,
+        private_key: Option<Vec<u8>>,
+        public_key: Option<Vec<u8>>,
+    ) -> VerificationDocument {
+        return VerificationDocument {
+            id,
+            private_key,
+            public_key,
+        };
+    }
+
     pub fn get_private_key(&self) -> &Option<Vec<u8>> {
         self.private_key.borrow()
     }
