@@ -11,8 +11,8 @@ use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use crate::{document::VerificationDocument, error::Error};
 
 pub trait Proof {
-    fn sign(&mut self, doc: VerificationDocument, content: String) -> Result<(), Error>;
-    fn verify(&self, doc: VerificationDocument, content: String) -> Result<bool, Error>;
+    fn sign(&mut self, doc: &mut VerificationDocument, content: String) -> Result<(), Error>;
+    fn verify(&self, doc: &mut VerificationDocument, content: String) -> Result<bool, Error>;
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -27,7 +27,7 @@ pub struct FiProof {
 }
 
 impl Proof for FiProof {
-    fn sign(&mut self, mut doc: VerificationDocument, content: String) -> Result<(), Error> {
+    fn sign(&mut self, doc: &mut VerificationDocument, content: String) -> Result<(), Error> {
         let key_bytes = match doc.get_private_key_mut() {
             None => {
                 return Err(Error::new(
@@ -62,7 +62,7 @@ impl Proof for FiProof {
         }
     }
 
-    fn verify(&self, mut doc: VerificationDocument, content: String) -> Result<bool, Error> {
+    fn verify(&self, doc: &mut VerificationDocument, content: String) -> Result<bool, Error> {
         let key_bytes = match doc.get_public_key_mut() {
             None => {
                 return Err(Error::new(
@@ -121,7 +121,7 @@ pub enum ProofType {
 
 #[cfg(not(feature = "wasm"))]
 impl ProofType {
-    pub fn sign(&mut self, doc: VerificationDocument, content: String) -> Result<(), Error> {
+    pub fn sign(&mut self, doc: &mut VerificationDocument, content: String) -> Result<(), Error> {
         match self {
             ProofType::FiProof(val) => {
                 return val.sign(doc, content);
@@ -129,7 +129,7 @@ impl ProofType {
         }
     }
 
-    pub fn verify(&self, doc: VerificationDocument, content: String) -> Result<bool, Error> {
+    pub fn verify(&self, doc: &mut VerificationDocument, content: String) -> Result<bool, Error> {
         match self {
             ProofType::FiProof(val) => val.verify(doc, content),
         }

@@ -79,7 +79,11 @@ impl VP {
     pub fn get_proof_mut(&mut self) -> &mut Option<ProofType> {
         self.proof.borrow_mut()
     }
-    pub fn sign(&mut self, doc: VerificationDocument, mut proof: ProofType) -> Result<(), Error> {
+    pub fn sign(
+        &mut self,
+        doc: &mut VerificationDocument,
+        mut proof: ProofType,
+    ) -> Result<(), Error> {
         let signable_values = match self.get_signable_content() {
             Err(error) => {
                 return Err(error);
@@ -98,7 +102,7 @@ impl VP {
         return Ok(());
     }
 
-    pub fn verify(&mut self, doc: VerificationDocument) -> Result<bool, Error> {
+    pub fn verify(&mut self, doc: &mut VerificationDocument) -> Result<bool, Error> {
         let signable_values = match self.get_signable_content() {
             Err(error) => {
                 return Err(error);
