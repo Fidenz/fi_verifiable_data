@@ -17,7 +17,10 @@ use wasm_bindgen::prelude::JsValue;
 use wasm_bindgen_struct::wasm_bindgen_struct;
 
 use crate::{
-    constants::FIELD_CASTING_ERROR, document::VerificationDocument, error::Error, proof::ProofType,
+    constants::FIELD_CASTING_ERROR,
+    document::VerificationDocument,
+    error::Error,
+    proof::{FiProof, Proof},
 };
 
 #[cfg(not(feature = "wasm"))]
@@ -51,7 +54,7 @@ pub struct VC {
     #[serde(rename = "termsOfUse", skip_serializing_if = "Option::is_none")]
     terms_of_use: Option<Value>,
     #[serde(rename = "proof", skip_serializing_if = "Option::is_none")]
-    proof: Option<ProofType>,
+    proof: Option<FiProof>,
     #[serde(skip_serializing, skip_deserializing)]
     optional_fields: HashMap<String, Box<Value>>,
 }
@@ -160,18 +163,18 @@ impl VC {
         self.evidence = evidence;
     }
 
-    pub fn get_proof(&self) -> &Option<ProofType> {
+    pub fn get_proof(&self) -> &Option<FiProof> {
         self.proof.borrow()
     }
 
-    pub fn get_proof_mut(&mut self) -> &mut Option<ProofType> {
+    pub fn get_proof_mut(&mut self) -> &mut Option<FiProof> {
         self.proof.borrow_mut()
     }
 
     pub fn sign(
         &mut self,
         doc: &mut VerificationDocument,
-        mut proof: ProofType,
+        mut proof: FiProof,
     ) -> Result<(), Error> {
         let signable_values = match self.get_signable_content() {
             Err(error) => {

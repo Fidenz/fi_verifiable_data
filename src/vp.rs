@@ -15,7 +15,12 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[cfg(feature = "wasm")]
 use wasm_bindgen::JsValue;
 
-use crate::{document::VerificationDocument, error::Error, proof::ProofType, vc::VC};
+use crate::{
+    document::VerificationDocument,
+    error::Error,
+    proof::{FiProof, Proof},
+    vc::VC,
+};
 
 #[cfg(not(feature = "wasm"))]
 #[derive(Serialize, Deserialize)]
@@ -27,7 +32,7 @@ pub struct VP {
     #[serde(rename = "type")]
     types: Vec<String>,
     #[serde(rename = "proof", skip_serializing_if = "Option::is_none")]
-    proof: Option<ProofType>,
+    proof: Option<FiProof>,
     #[serde(rename = "verifiableCredential")]
     verifiable_credential: Vec<VC>,
     #[serde(skip_serializing, skip_deserializing)]
@@ -80,18 +85,18 @@ impl VP {
         self.types = types;
     }
 
-    pub fn get_proof(&self) -> &Option<ProofType> {
+    pub fn get_proof(&self) -> &Option<FiProof> {
         self.proof.borrow()
     }
 
-    pub fn get_proof_mut(&mut self) -> &mut Option<ProofType> {
+    pub fn get_proof_mut(&mut self) -> &mut Option<FiProof> {
         self.proof.borrow_mut()
     }
 
     pub fn sign(
         &mut self,
         doc: &mut VerificationDocument,
-        mut proof: ProofType,
+        mut proof: FiProof,
     ) -> Result<(), Error> {
         let signable_values = match self.get_signable_content() {
             Err(error) => {
