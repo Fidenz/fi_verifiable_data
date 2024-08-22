@@ -113,29 +113,6 @@ impl FiProof {
     }
 }
 
-#[cfg(not(feature = "wasm"))]
-#[derive(Serialize, Deserialize)]
-pub enum ProofType {
-    FiProof(FiProof),
-}
-
-#[cfg(not(feature = "wasm"))]
-impl ProofType {
-    pub fn sign(&mut self, doc: &mut VerificationDocument, content: String) -> Result<(), Error> {
-        match self {
-            ProofType::FiProof(val) => {
-                return val.sign(doc, content);
-            }
-        }
-    }
-
-    pub fn verify(&self, doc: &mut VerificationDocument, content: String) -> Result<bool, Error> {
-        match self {
-            ProofType::FiProof(val) => val.verify(doc, content),
-        }
-    }
-}
-
 #[cfg(feature = "wasm")]
 #[wasm_bindgen]
 pub enum ProofType {
