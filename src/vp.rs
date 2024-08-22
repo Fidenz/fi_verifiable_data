@@ -68,6 +68,14 @@ impl VP {
         self.contexts.push(context)
     }
 
+    pub fn add_verifiable_credentials(&mut self, verifiable_credential: VC) {
+        self.verifiable_credential.push(verifiable_credential);
+    }
+
+    pub fn set_verifiable_credentials(&mut self, verifiable_credentials: Vec<VC>) {
+        self.verifiable_credential = verifiable_credentials;
+    }
+
     pub fn set_types(&mut self, types: Vec<String>) {
         self.types = types;
     }
@@ -79,6 +87,7 @@ impl VP {
     pub fn get_proof_mut(&mut self) -> &mut Option<ProofType> {
         self.proof.borrow_mut()
     }
+
     pub fn sign(
         &mut self,
         doc: &mut VerificationDocument,
@@ -246,6 +255,26 @@ impl VP {
     #[wasm_bindgen(js_name = "getProof")]
     pub fn get_proof(&self) -> JsValue {
         *self.0["proof"].clone()
+    }
+
+    #[wasm_bindgen(js_name = "addVerifiableCredential")]
+    pub fn add_verifiable_credentials(&mut self, verifiable_credential: VC) {
+        let arr: Array = js_sys::Array::from(&*self.0["verifiableCredential"]);
+
+        arr.push(&verifiable_credential.clone());
+
+        self.0.insert(
+            String::from("verifiableCredential"),
+            Box::new(JsValue::from(arr)),
+        );
+    }
+
+    #[wasm_bindgen(js_name = "setVerifiableCredential")]
+    pub fn set_verifiable_credentials(&mut self, verifiable_credentials: Vec<VC>) {
+        self.0.insert(
+            String::from("verifiableCredential"),
+            Box::new(verifiable_credentials),
+        );
     }
 
     #[wasm_bindgen]
