@@ -2,8 +2,6 @@ use chrono::Utc;
 use fi_digital_signatures::{
     algorithms::Algorithm, signer::get_signing_key, verifier::get_verifying_key,
 };
-#[cfg(feature = "wasm")]
-use js_sys::Object;
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "wasm")]
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
@@ -125,13 +123,13 @@ impl ProofType {
         &self,
         alg: Algorithm,
         purpose: String,
-        doc: VerificationDocument,
+        doc: &mut VerificationDocument,
         content: String,
     ) -> Result<JsValue, Error> {
         match self {
             ProofType::FiProof => {
                 let mut proof = FiProof::new(alg, purpose);
-                proof.sign(doc, content);
+                _ = proof.sign(doc, content);
 
                 match serde_wasm_bindgen::to_value(&proof) {
                     Ok(val) => return Ok(val),
@@ -143,7 +141,7 @@ impl ProofType {
 
     pub fn verify(
         &self,
-        doc: VerificationDocument,
+        doc: &mut VerificationDocument,
         content: String,
         proof: JsValue,
     ) -> Result<bool, Error> {

@@ -1,27 +1,28 @@
-use std::{
-    borrow::{Borrow, BorrowMut},
-    collections::HashMap,
-};
+#[cfg(not(feature = "wasm"))]
+use std::borrow::{Borrow, BorrowMut};
+use std::collections::HashMap;
 
-use chrono::{DateTime, Utc};
+#[cfg(not(feature = "wasm"))]
+use crate::constants::FIELD_CASTING_ERROR;
+#[cfg(feature = "wasm")]
+use crate::proof::ProofType;
+#[cfg(not(feature = "wasm"))]
+use crate::proof::{FiProof, Proof};
+use crate::{document::VerificationDocument, error::Error};
+#[cfg(not(feature = "wasm"))]
+use chrono::DateTime;
+use chrono::Utc;
 #[cfg(feature = "wasm")]
 use fi_digital_signatures::algorithms::Algorithm;
 #[cfg(feature = "wasm")]
 use js_sys::{Array, Object};
+#[cfg(not(feature = "wasm"))]
 use serde::{Deserialize, Serialize};
+#[cfg(not(feature = "wasm"))]
 use serde_json::Value;
 use wasm_bindgen::prelude::wasm_bindgen;
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::JsValue;
-#[cfg(feature = "wasm")]
-use wasm_bindgen_struct::wasm_bindgen_struct;
-
-use crate::{
-    constants::FIELD_CASTING_ERROR,
-    document::VerificationDocument,
-    error::Error,
-    proof::{FiProof, Proof},
-};
 
 #[cfg(not(feature = "wasm"))]
 #[derive(Serialize, Deserialize)]
@@ -272,26 +273,23 @@ impl VC {
         valid_until: JsValue,
         contexts: Vec<String>,
     ) -> VC {
-        let datetime = Utc::now().to_rfc3339();
+        let _datetime = Utc::now().to_rfc3339();
         let mut vc: HashMap<String, Box<JsValue>> = HashMap::new();
 
         let mut types: Vec<JsValue> = Vec::new();
         types.push(JsValue::from_str("VerifiableCredential"));
 
         vc.insert(String::from("type"), Box::new(JsValue::from(types)));
-        vc.insert(String::from("@context"), Box::new(JsValue::from_str("[]")));
+        vc.insert(String::from("@context"), Box::new(JsValue::from(contexts)));
         vc.insert(
             String::from("credentialSubject"),
             Box::new(JsValue::from_str("{}")),
         );
         vc.insert(String::from("evidence"), Box::new(JsValue::from_str("{}")));
-        vc.insert(String::from("id"), Box::new(JsValue::from_str("{}")));
-        vc.insert(String::from("name"), Box::new(JsValue::from_str("{}")));
-        vc.insert(
-            String::from("description"),
-            Box::new(JsValue::from_str("{}")),
-        );
-        vc.insert(String::from("issuer"), Box::new(JsValue::from_str("{}")));
+        vc.insert(String::from("id"), Box::new(JsValue::from(id)));
+        vc.insert(String::from("name"), Box::new(name));
+        vc.insert(String::from("description"), Box::new(description));
+        vc.insert(String::from("issuer"), Box::new(issuer));
         vc.insert(String::from("validFrom"), Box::new(JsValue::from_str("{}")));
         vc.insert(String::from("validUntil"), Box::new(valid_until));
         vc.insert(
@@ -441,7 +439,7 @@ impl VC {
         &mut self,
         alg: Algorithm,
         purpose: String,
-        doc: VerificationDocument,
+        doc: &mut VerificationDocument,
         proof_type: ProofType,
     ) -> Result<(), Error> {
         let signable_values = match self.get_signable_content() {
@@ -465,7 +463,7 @@ impl VC {
     #[wasm_bindgen]
     pub fn verify(
         &mut self,
-        doc: VerificationDocument,
+        doc: &mut VerificationDocument,
         proof_type: ProofType,
     ) -> Result<bool, Error> {
         let signable_values = match self.get_signable_content() {
@@ -480,9 +478,9 @@ impl VC {
 
     #[wasm_bindgen(js_name = "toObject")]
     pub fn to_object(&mut self) -> Result<Object, Error> {
-        let mut value = js_sys::Object::new();
+        let value = js_sys::Object::new();
         self.0.iter().for_each(|(key, val)| {
-            js_sys::Reflect::set(&value, &JsValue::from_str(key), val);
+            _ = js_sys::Reflect::set(&value, &JsValue::from_str(key), val);
         });
 
         return Ok(value);
@@ -499,7 +497,7 @@ impl VC {
 
         match js_sys::Reflect::delete_property(&val, &JsValue::from_str("proof")) {
             Err(error) => return Err(Error::new(error.as_string().unwrap().as_str())),
-            Ok(val) => {}
+            Ok(_val) => {}
         };
 
         return Ok(val.to_string().into());

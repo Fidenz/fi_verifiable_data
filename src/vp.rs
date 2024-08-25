@@ -1,26 +1,27 @@
-use std::{
-    borrow::{Borrow, BorrowMut},
-    collections::HashMap,
-};
+#[cfg(not(feature = "wasm"))]
+use std::borrow::{Borrow, BorrowMut};
+use std::collections::HashMap;
 
 #[cfg(feature = "wasm")]
 use fi_digital_signatures::algorithms::Algorithm;
 #[cfg(feature = "wasm")]
 use js_sys::{Array, Object};
+#[cfg(not(feature = "wasm"))]
 use serde::{Deserialize, Serialize};
+#[cfg(not(feature = "wasm"))]
 use serde_json::Value;
 
+#[cfg(feature = "wasm")]
+use crate::proof::ProofType;
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 #[cfg(feature = "wasm")]
 use wasm_bindgen::JsValue;
 
-use crate::{
-    document::VerificationDocument,
-    error::Error,
-    proof::{FiProof, Proof},
-    vc::VC,
-};
+#[cfg(not(feature = "wasm"))]
+use crate::proof::{FiProof, Proof};
+
+use crate::{document::VerificationDocument, error::Error, vc::VC};
 
 #[cfg(not(feature = "wasm"))]
 #[derive(Serialize, Deserialize)]
@@ -266,7 +267,7 @@ impl VP {
     pub fn add_verifiable_credentials(&mut self, verifiable_credential: VC) {
         let arr: Array = js_sys::Array::from(&*self.0["verifiableCredential"]);
 
-        arr.push(&verifiable_credential.clone());
+        arr.push(&JsValue::from(verifiable_credential));
 
         self.0.insert(
             String::from("verifiableCredential"),
@@ -278,7 +279,7 @@ impl VP {
     pub fn set_verifiable_credentials(&mut self, verifiable_credentials: Vec<VC>) {
         self.0.insert(
             String::from("verifiableCredential"),
-            Box::new(verifiable_credentials),
+            Box::new(JsValue::from(verifiable_credentials)),
         );
     }
 
@@ -287,7 +288,7 @@ impl VP {
         &mut self,
         alg: Algorithm,
         purpose: String,
-        doc: VerificationDocument,
+        doc: &mut VerificationDocument,
         proof_type: ProofType,
     ) -> Result<(), Error> {
         let signable_values = match self.get_signable_content() {
@@ -311,7 +312,7 @@ impl VP {
     #[wasm_bindgen]
     pub fn verify(
         &mut self,
-        doc: VerificationDocument,
+        doc: &mut VerificationDocument,
         proof_type: ProofType,
     ) -> Result<bool, Error> {
         let signable_values = match self.get_signable_content() {
@@ -326,9 +327,9 @@ impl VP {
 
     #[wasm_bindgen(js_name = "toObject")]
     pub fn to_object(&mut self) -> Result<Object, Error> {
-        let mut value = js_sys::Object::new();
+        let value = js_sys::Object::new();
         self.0.iter().for_each(|(key, val)| {
-            js_sys::Reflect::set(&value, &JsValue::from_str(key), val);
+            _ = js_sys::Reflect::set(&value, &JsValue::from_str(key), val);
         });
 
         return Ok(value);
@@ -336,14 +337,14 @@ impl VP {
 
     #[wasm_bindgen(js_name = "getSignableContent")]
     pub fn get_signable_content(&mut self) -> Result<String, Error> {
-        let mut val = match self.to_object() {
+        let val = match self.to_object() {
             Err(error) => {
                 return Err(error);
             }
             Ok(val) => val,
         };
 
-        js_sys::Reflect::delete_property(&val, &JsValue::from_str("proof"));
+        _ = js_sys::Reflect::delete_property(&val, &JsValue::from_str("proof"));
 
         return Ok(val.to_string().into());
     }
@@ -355,8 +356,6 @@ impl VP {
 
     #[wasm_bindgen]
     pub fn from(value: JsValue) -> Result<VP, Error> {
-        let map: HashMap<String, Box<JsValue>> = HashMap::new();
-
         let keys = match js_sys::Reflect::own_keys(&value) {
             Ok(val) => val,
             Err(error) => return Err(Error::new(error.as_string().unwrap().as_str())),
