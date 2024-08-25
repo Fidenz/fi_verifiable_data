@@ -1,0 +1,34 @@
+name: Publish
+
+on:
+  push:
+    tags: ["*"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  publish-rust:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: cargo build --verbose
+      - name: Login
+        run: cargo login ${{ secrets.CARGO_API_TOKEN }}
+      - name: Publish
+        run: cargo publish
+
+  publish-wasm:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: wasm-pack-action
+        uses: jetli/wasm-pack-action@v0.4.0
+      - run: npm config set //registry.npmjs.org/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}
+      - name: Builds
+        run: wasm-pack build --features wasm
+      - name: Publish
+        run: wasm-pack publish
