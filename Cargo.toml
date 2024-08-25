@@ -2,6 +2,13 @@
 name = "fi-verifiable-data"
 version = "0.0.1"
 edition = "2021"
+repository = "https://github.com/Fidenz/fi_verifiable_data"
+authors = ["Ravindu Wijegunawardhana <ravindu.w@gmail.com"]
+description = "VC and VP wrapper for rust and WASM. fi-digital-signatures crate is used to sign and verify the data objects." 
+readme = "README.md"
+license = "MIT OR Apache-2.0"
+keywords = ["sign", "verify", "identity"]
+categories = ["WebAssembly"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
