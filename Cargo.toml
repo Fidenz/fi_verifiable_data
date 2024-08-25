@@ -7,8 +7,7 @@ authors = ["Ravindu Wijegunawardhana <ravindu.w@gmail.com"]
 description = "VC and VP wrapper for rust and WASM. fi-digital-signatures crate is used to sign and verify the data objects." 
 readme = "README.md"
 license = "MIT OR Apache-2.0"
-keywords = ["sign", "verify", "identity"]
-categories = ["WebAssembly"]
+keywords = ["sign", "verify", "identity"] 
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
