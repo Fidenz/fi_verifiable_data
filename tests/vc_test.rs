@@ -1,5 +1,5 @@
+use fi_verifiable_data::{document::VerificationDocument, proof::FiProof, vc::VC};
 use serde_json::Value;
-use verifiable_data::{document::VerificationDocument, proof::FiProof, vc::VC};
 
 const PRIVATE_KEY_HEX: &'static str =
     "aa7f263d0a1a671a4c06ea22800c1391dd8974174f01d0e5a848fe51bdd1bcf8";
