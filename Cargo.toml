@@ -1,6 +1,6 @@
 [package]
 name = "fi-verifiable-data"
-version = "0.0.2"
+version = "0.0.3"
 edition = "2021"
 repository = "https://github.com/Fidenz/fi_verifiable_data"
 authors = ["Ravindu Wijegunawardhana <ravindu.w@gmail.com"]
