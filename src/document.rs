@@ -23,7 +23,9 @@ pub struct VerificationDocument {
     id: String,
 }
 
+#[wasm_bindgen]
 impl VerificationDocument {
+    #[wasm_bindgen(constructor)]
     pub fn new(
         id: String,
         private_key: Option<Vec<u8>>,
@@ -35,7 +37,9 @@ impl VerificationDocument {
             public_key,
         };
     }
+}
 
+impl VerificationDocument {
     pub fn get_private_key(&self) -> &Option<Vec<u8>> {
         self.private_key.borrow()
     }

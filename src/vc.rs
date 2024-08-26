@@ -273,7 +273,7 @@ impl VC {
         valid_until: JsValue,
         contexts: Vec<String>,
     ) -> VC {
-        let _datetime = Utc::now().to_rfc3339();
+        let datetime = Utc::now().to_rfc3339();
         let mut vc: HashMap<String, Box<JsValue>> = HashMap::new();
 
         let mut types: Vec<JsValue> = Vec::new();
@@ -281,34 +281,19 @@ impl VC {
 
         vc.insert(String::from("type"), Box::new(JsValue::from(types)));
         vc.insert(String::from("@context"), Box::new(JsValue::from(contexts)));
-        vc.insert(
-            String::from("credentialSubject"),
-            Box::new(JsValue::from_str("{}")),
-        );
-        vc.insert(String::from("evidence"), Box::new(JsValue::from_str("{}")));
+        vc.insert(String::from("credentialSubject"), Box::new(JsValue::NULL));
+        vc.insert(String::from("evidence"), Box::new(JsValue::NULL));
         vc.insert(String::from("id"), Box::new(JsValue::from(id)));
         vc.insert(String::from("name"), Box::new(name));
         vc.insert(String::from("description"), Box::new(description));
         vc.insert(String::from("issuer"), Box::new(issuer));
-        vc.insert(String::from("validFrom"), Box::new(JsValue::from_str("{}")));
+        vc.insert(String::from("validFrom"), Box::new(JsValue::from(datetime)));
         vc.insert(String::from("validUntil"), Box::new(valid_until));
-        vc.insert(
-            String::from("credentialStatus"),
-            Box::new(JsValue::from_str("{}")),
-        );
-        vc.insert(
-            String::from("credentialSchema"),
-            Box::new(JsValue::from_str("{}")),
-        );
+        vc.insert(String::from("credentialStatus"), Box::new(JsValue::NULL));
+        vc.insert(String::from("credentialSchema"), Box::new(JsValue::NULL));
         vc.insert(String::from("proof"), Box::new(JsValue::null()));
-        vc.insert(
-            String::from("termsOfUse"),
-            Box::new(JsValue::from_str("{}")),
-        );
-        vc.insert(
-            String::from("refreshService"),
-            Box::new(JsValue::from_str("{}")),
-        );
+        vc.insert(String::from("termsOfUse"), Box::new(JsValue::NULL));
+        vc.insert(String::from("refreshService"), Box::new(JsValue::NULL));
 
         VC(vc)
     }
@@ -437,16 +422,11 @@ impl VC {
     #[wasm_bindgen]
     pub fn sign(
         &mut self,
-        alg: &str,
+        alg: Algorithm,
         purpose: String,
         doc: &mut VerificationDocument,
         proof_type: ProofType,
     ) -> Result<(), FiError> {
-        let algorithm = match Algorithm::from_str(alg) {
-            Some(val) => val,
-            None => return Err(FiError::new("Unknown algorithm")),
-        };
-
         let signable_values = match self.get_signable_content() {
             Err(error) => {
                 return Err(error);
@@ -454,7 +434,7 @@ impl VC {
             Ok(val) => val,
         };
 
-        let proof = match proof_type.sign(algorithm, purpose, doc, signable_values.to_string()) {
+        let proof = match proof_type.sign(alg, purpose, doc, signable_values.to_string()) {
             Err(error) => {
                 return Err(error);
             }

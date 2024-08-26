@@ -189,10 +189,10 @@ impl VP {
         types.push(JsValue::from_str("VerifiablePresentation"));
 
         vp.insert(String::from("type"), Box::new(JsValue::from(types)));
-        vp.insert(String::from("@context"), Box::new(JsValue::from_str("[]")));
+        vp.insert(String::from("@context"), Box::new(Array::new().into()));
         vp.insert(
             String::from("verifiableCredential"),
-            Box::new(JsValue::from_str("[]")),
+            Box::new(Array::new().into()),
         );
         vp.insert(String::from("holder"), Box::new(holder));
         vp.insert(String::from("id"), Box::new(JsValue::from_str(id.as_str())));
@@ -286,16 +286,11 @@ impl VP {
     #[wasm_bindgen]
     pub fn sign(
         &mut self,
-        alg: &str,
+        alg: Algorithm,
         purpose: String,
         doc: &mut VerificationDocument,
         proof_type: ProofType,
     ) -> Result<(), FiError> {
-        let algorithm = match Algorithm::from_str(alg) {
-            Some(val) => val,
-            None => return Err(FiError::new("Unknown algorithm")),
-        };
-
         let signable_values = match self.get_signable_content() {
             Err(error) => {
                 return Err(error);
@@ -303,7 +298,7 @@ impl VP {
             Ok(val) => val,
         };
 
-        let proof = match proof_type.sign(algorithm, purpose, doc, signable_values.to_string()) {
+        let proof = match proof_type.sign(alg, purpose, doc, signable_values.to_string()) {
             Err(error) => {
                 return Err(error);
             }
