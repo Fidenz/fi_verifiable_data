@@ -8,7 +8,7 @@ use crate::constants::FIELD_CASTING_ERROR;
 use crate::proof::ProofType;
 #[cfg(not(feature = "wasm"))]
 use crate::proof::{FiProof, Proof};
-use crate::{document::VerificationDocument, error::Error};
+use crate::{document::VerificationDocument, error::FiError};
 #[cfg(not(feature = "wasm"))]
 use chrono::DateTime;
 use chrono::Utc;
@@ -101,11 +101,11 @@ impl VC {
         vc
     }
 
-    pub fn add_issuer(&mut self, issuer: Value) -> Result<(), Error> {
+    pub fn add_issuer(&mut self, issuer: Value) -> Result<(), FiError> {
         if self.issuer.is_array() {
             let arr = match self.issuer.as_array_mut() {
                 Some(val) => val,
-                None => return Err(Error::new(FIELD_CASTING_ERROR)),
+                None => return Err(FiError::new(FIELD_CASTING_ERROR)),
             };
 
             arr.push(issuer);
@@ -114,11 +114,11 @@ impl VC {
                 Ok(val) => val,
                 Err(error) => {
                     eprint!("{}", error);
-                    return Err(Error::new(FIELD_CASTING_ERROR));
+                    return Err(FiError::new(FIELD_CASTING_ERROR));
                 }
             };
         } else {
-            return Err(Error::new(FIELD_CASTING_ERROR));
+            return Err(FiError::new(FIELD_CASTING_ERROR));
         }
 
         return Ok(());
@@ -176,7 +176,7 @@ impl VC {
         &mut self,
         doc: &mut VerificationDocument,
         mut proof: FiProof,
-    ) -> Result<(), Error> {
+    ) -> Result<(), FiError> {
         let signable_values = match self.get_signable_content() {
             Err(error) => {
                 return Err(error);
@@ -195,7 +195,7 @@ impl VC {
         return Ok(());
     }
 
-    pub fn verify(&mut self, doc: &mut VerificationDocument) -> Result<bool, Error> {
+    pub fn verify(&mut self, doc: &mut VerificationDocument) -> Result<bool, FiError> {
         let signable_values = match self.get_signable_content() {
             Err(error) => {
                 return Err(error);
@@ -204,18 +204,18 @@ impl VC {
         };
 
         let proof = match self.proof.as_mut() {
-            None => return Err(Error::new("Cannot get proof as a mutable reference")),
+            None => return Err(FiError::new("Cannot get proof as a mutable reference")),
             Some(val) => val,
         };
 
         proof.verify(doc, signable_values.to_string())
     }
 
-    pub fn to_object(&mut self) -> Result<Value, Error> {
+    pub fn to_object(&mut self) -> Result<Value, FiError> {
         let mut value = match serde_json::to_value(&self) {
             Err(error) => {
                 eprintln!("{}", error);
-                return Err(Error::new("Cannot create value object from VC"));
+                return Err(FiError::new("Cannot create value object from VC"));
             }
             Ok(val) => val,
         };
@@ -229,7 +229,7 @@ impl VC {
         return Ok(value);
     }
 
-    pub fn get_signable_content(&mut self) -> Result<Value, Error> {
+    pub fn get_signable_content(&mut self) -> Result<Value, FiError> {
         let mut val = match self.to_object() {
             Err(error) => {
                 return Err(error);
@@ -247,7 +247,7 @@ impl VC {
             .insert(String::from(key), Box::new(val));
     }
 
-    pub fn from(value: Value) -> Result<Self, Error> {
+    pub fn from(value: Value) -> Result<Self, FiError> {
         let mut map: HashMap<String, Box<Value>> = HashMap::new();
 
         match serde_ignored::deserialize(&value, |path| {
@@ -256,7 +256,7 @@ impl VC {
             map.insert(_path, Box::new(value_to_save));
         }) {
             Ok(val) => return Ok(val),
-            Err(error) => return Err(Error::new(error.to_string().as_str())),
+            Err(error) => return Err(FiError::new(error.to_string().as_str())),
         };
     }
 }
@@ -314,7 +314,7 @@ impl VC {
     }
 
     #[wasm_bindgen(js_name = "addIsser")]
-    pub fn add_issuer(&mut self, issuer: JsValue) -> Result<(), Error> {
+    pub fn add_issuer(&mut self, issuer: JsValue) -> Result<(), FiError> {
         if self.0["issuer"].is_array() {
             let arr: Array = js_sys::Array::from(&*self.0["issuer"]);
 
@@ -345,7 +345,7 @@ impl VC {
     }
 
     #[wasm_bindgen(js_name = "addContext")]
-    pub fn add_context(&mut self, context: JsValue) -> Result<(), Error> {
+    pub fn add_context(&mut self, context: JsValue) -> Result<(), FiError> {
         if self.0["@context"].is_array() {
             let arr: Array = js_sys::Array::from(&*self.0["@context"]);
 
@@ -366,7 +366,7 @@ impl VC {
     }
 
     #[wasm_bindgen(js_name = "addType")]
-    pub fn add_type(&mut self, _type: JsValue) -> Result<(), Error> {
+    pub fn add_type(&mut self, _type: JsValue) -> Result<(), FiError> {
         if self.0["type"].is_array() {
             let arr: Array = js_sys::Array::from(&*self.0["type"]);
 
@@ -437,11 +437,16 @@ impl VC {
     #[wasm_bindgen]
     pub fn sign(
         &mut self,
-        alg: Algorithm,
+        alg: &str,
         purpose: String,
         doc: &mut VerificationDocument,
         proof_type: ProofType,
-    ) -> Result<(), Error> {
+    ) -> Result<(), FiError> {
+        let algorithm = match Algorithm::from_str(alg) {
+            Some(val) => val,
+            None => return Err(FiError::new("Unknown algorithm")),
+        };
+
         let signable_values = match self.get_signable_content() {
             Err(error) => {
                 return Err(error);
@@ -449,7 +454,7 @@ impl VC {
             Ok(val) => val,
         };
 
-        let proof = match proof_type.sign(alg, purpose, doc, signable_values.to_string()) {
+        let proof = match proof_type.sign(algorithm, purpose, doc, signable_values.to_string()) {
             Err(error) => {
                 return Err(error);
             }
@@ -465,7 +470,7 @@ impl VC {
         &mut self,
         doc: &mut VerificationDocument,
         proof_type: ProofType,
-    ) -> Result<bool, Error> {
+    ) -> Result<bool, FiError> {
         let signable_values = match self.get_signable_content() {
             Err(error) => {
                 return Err(error);
@@ -477,7 +482,7 @@ impl VC {
     }
 
     #[wasm_bindgen(js_name = "toObject")]
-    pub fn to_object(&mut self) -> Result<Object, Error> {
+    pub fn to_object(&mut self) -> Result<Object, FiError> {
         let value = js_sys::Object::new();
         self.0.iter().for_each(|(key, val)| {
             _ = js_sys::Reflect::set(&value, &JsValue::from_str(key), val);
@@ -487,7 +492,7 @@ impl VC {
     }
 
     #[wasm_bindgen(js_name = "getSignableContent")]
-    pub fn get_signable_content(&mut self) -> Result<String, Error> {
+    pub fn get_signable_content(&mut self) -> Result<String, FiError> {
         let val = match self.to_object() {
             Err(error) => {
                 return Err(error);
@@ -496,7 +501,7 @@ impl VC {
         };
 
         match js_sys::Reflect::delete_property(&val, &JsValue::from_str("proof")) {
-            Err(error) => return Err(Error::new(error.as_string().unwrap().as_str())),
+            Err(error) => return Err(FiError::new(error.as_string().unwrap().as_str())),
             Ok(_val) => {}
         };
 
@@ -509,10 +514,10 @@ impl VC {
     }
 
     #[wasm_bindgen]
-    pub fn from(value: JsValue) -> Result<VC, Error> {
+    pub fn from(value: JsValue) -> Result<VC, FiError> {
         let keys = match js_sys::Reflect::own_keys(&value) {
             Ok(val) => val,
-            Err(error) => return Err(Error::new(error.as_string().unwrap().as_str())),
+            Err(error) => return Err(FiError::new(error.as_string().unwrap().as_str())),
         };
 
         let mut new_value: HashMap<String, Box<JsValue>> = HashMap::new();

@@ -6,11 +6,11 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "wasm")]
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
-use crate::{document::VerificationDocument, error::Error};
+use crate::{document::VerificationDocument, error::FiError};
 
 pub trait Proof {
-    fn sign(&mut self, doc: &mut VerificationDocument, content: String) -> Result<(), Error>;
-    fn verify(&self, doc: &mut VerificationDocument, content: String) -> Result<bool, Error>;
+    fn sign(&mut self, doc: &mut VerificationDocument, content: String) -> Result<(), FiError>;
+    fn verify(&self, doc: &mut VerificationDocument, content: String) -> Result<bool, FiError>;
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -25,10 +25,10 @@ pub struct FiProof {
 }
 
 impl Proof for FiProof {
-    fn sign(&mut self, doc: &mut VerificationDocument, content: String) -> Result<(), Error> {
+    fn sign(&mut self, doc: &mut VerificationDocument, content: String) -> Result<(), FiError> {
         let key_bytes = match doc.get_private_key_mut() {
             None => {
-                return Err(Error::new(
+                return Err(FiError::new(
                     "No private key was found in the VerificationDocument",
                 ))
             }
@@ -37,14 +37,14 @@ impl Proof for FiProof {
 
         let alg = match Algorithm::from_str(self.algorithm.as_str()) {
             Some(val) => val,
-            None => return Err(Error::new("Algorithm cannot be identified.")),
+            None => return Err(FiError::new("Algorithm cannot be identified.")),
         };
 
         let signing_key = match get_signing_key(alg, key_bytes.as_mut_slice()) {
             Ok(val) => val,
             Err(error) => {
                 eprintln!("{}", error);
-                return Err(Error::new("Failed to get signing key"));
+                return Err(FiError::new("Failed to get signing key"));
             }
         };
 
@@ -55,15 +55,15 @@ impl Proof for FiProof {
             }
             Err(error) => {
                 eprintln!("{}", error);
-                return Err(Error::new("Failed to sign content"));
+                return Err(FiError::new("Failed to sign content"));
             }
         }
     }
 
-    fn verify(&self, doc: &mut VerificationDocument, content: String) -> Result<bool, Error> {
+    fn verify(&self, doc: &mut VerificationDocument, content: String) -> Result<bool, FiError> {
         let key_bytes = match doc.get_public_key_mut() {
             None => {
-                return Err(Error::new(
+                return Err(FiError::new(
                     "No publuc key was found in the VerificationDocument",
                 ))
             }
@@ -71,7 +71,7 @@ impl Proof for FiProof {
         };
 
         let alg = match Algorithm::from_str(self.algorithm.as_str()) {
-            None => return Err(Error::new("Provided algorithm is no supported")),
+            None => return Err(FiError::new("Provided algorithm is no supported")),
             Some(val) => val,
         };
 
@@ -79,7 +79,7 @@ impl Proof for FiProof {
             Ok(val) => val,
             Err(error) => {
                 eprintln!("{}", error);
-                return Err(Error::new("Failed to get signing key"));
+                return Err(FiError::new("Failed to get signing key"));
             }
         };
 
@@ -88,11 +88,11 @@ impl Proof for FiProof {
                 Ok(val) => Ok(val),
                 Err(error) => {
                     eprintln!("{}", error);
-                    return Err(Error::new("Failed to verify content"));
+                    return Err(FiError::new("Failed to verify content"));
                 }
             },
             None => {
-                return Err(Error::new("Failed to verify content"));
+                return Err(FiError::new("Failed to verify content"));
             }
         }
     }
@@ -125,7 +125,7 @@ impl ProofType {
         purpose: String,
         doc: &mut VerificationDocument,
         content: String,
-    ) -> Result<JsValue, Error> {
+    ) -> Result<JsValue, FiError> {
         match self {
             ProofType::FiProof => {
                 let mut proof = FiProof::new(alg, purpose);
@@ -133,7 +133,7 @@ impl ProofType {
 
                 match serde_wasm_bindgen::to_value(&proof) {
                     Ok(val) => return Ok(val),
-                    Err(err) => return Err(Error::new(err.to_string().as_str())),
+                    Err(err) => return Err(FiError::new(err.to_string().as_str())),
                 }
             }
         }
@@ -144,11 +144,11 @@ impl ProofType {
         doc: &mut VerificationDocument,
         content: String,
         proof: JsValue,
-    ) -> Result<bool, Error> {
+    ) -> Result<bool, FiError> {
         match self {
             ProofType::FiProof => {
                 let fi_proof: FiProof = match serde_wasm_bindgen::from_value(proof) {
-                    Err(error) => return Err(Error::new(error.to_string().as_str())),
+                    Err(error) => return Err(FiError::new(error.to_string().as_str())),
                     Ok(val) => val,
                 };
 

@@ -4,21 +4,21 @@ use wasm_bindgen::prelude::wasm_bindgen;
 
 #[wasm_bindgen]
 #[derive(Debug)]
-pub struct Error {
+pub struct FiError {
     message: String,
 }
 
 #[wasm_bindgen]
-impl Error {
+impl FiError {
     #[wasm_bindgen(constructor)]
-    pub fn new(message: &str) -> Error {
-        return Error {
+    pub fn new(message: &str) -> FiError {
+        return FiError {
             message: String::from(message),
         };
     }
 }
 
-impl Display for Error {
+impl Display for FiError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let _ = f.write_str(self.message.as_str());
         return Ok(());

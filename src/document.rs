@@ -9,7 +9,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::JsValue;
 
-use crate::error::Error;
+use crate::error::FiError;
 
 pub trait DocResolver {
     fn resolve(&self, url: &str) -> Option<VerificationDocument>;
@@ -69,7 +69,7 @@ pub struct DocumentLoader {
 
 #[cfg(not(feature = "wasm"))]
 impl DocumentLoader {
-    pub fn new(docs: Option<HashMap<String, VerificationDocument>>) -> Result<Self, Error> {
+    pub fn new(docs: Option<HashMap<String, VerificationDocument>>) -> Result<Self, FiError> {
         return Ok(DocumentLoader {
             doc_resolvers: Vec::new(),
             docs: match docs {
@@ -110,13 +110,13 @@ fn get_verification_document(doc: &mut DocumentLoader, url: &str) -> Option<Veri
 #[cfg(feature = "wasm")]
 impl DocumentLoader {
     #[wasm_bindgen(constructor)]
-    pub fn new(docs: JsValue) -> Result<DocumentLoader, Error> {
+    pub fn new(docs: JsValue) -> Result<DocumentLoader, FiError> {
         let mut values: Option<HashMap<String, VerificationDocument>> = None;
 
         if docs.is_null() || docs.is_undefined() {
             values = match serde_wasm_bindgen::from_value(docs) {
                 Ok(val) => val,
-                Err(error) => return Err(Error::new(error.to_string().as_str())),
+                Err(error) => return Err(FiError::new(error.to_string().as_str())),
             };
         }
 
