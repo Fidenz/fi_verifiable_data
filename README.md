@@ -67,6 +67,58 @@ let result = match vc.verify(&mut eddsa_doc) {
 
 ### WASM
 
+#### Sign
+
+```javascript
+const fiVerifiableData = await import("fi-verifiable-data");
+
+let vc = new fiVerifiableData.VC("id:1", "issuer", "name", "description", new Date().toString(), [
+  "https://www.w3.org/2018/credentials/v1", 
+]);
+ 
+const privateKeyBytes = Uint8Array.from(
+  Buffer.from(
+    "7b6df71975950d5ea15ac090c57d462f73d3a48644fbcf2c6d5db838adf136b5",
+    "hex"
+  )
+);
+let verificationDocument = new fiVerifiableData.VerificationDocument(
+  "",
+  privateKeyBytes,
+  null
+);
+
+vc.sign(
+  fiVerifiableData.Algorithm.EdDSA,
+  "purpose",
+  verificationDocument,
+  fiVerifiableData.ProofType.FiProof
+);
+console.log(vc.toObject());
+```
+
+#### Verify
+
+```javascript
+const fiVerifiableData = await import("fi-verifiable-data");
+ 
+const publicKeyBytes = Uint8Array.from(
+  Buffer.from(
+    "aa7f263d0a1a671a4c06ea22800c1391dd8974174f01d0e5a848fe51bdd1bcf8",
+    "hex"
+  )
+); 
+let verificationDocument = new fiVerifiableData.VerificationDocument(
+  "",
+  null,
+  publicKeyBytes
+);
+
+let result = vc.verify( 
+  verificationDocument
+); 
+```
+
 ## Verifiable Presentation
 
 ### Rust
@@ -122,3 +174,56 @@ let result = match vp.verify(&mut eddsa_doc) {
 ```
 
 ### WASM
+
+
+#### Sign
+
+```javascript
+const fiVerifiableData = await import("fi-verifiable-data");
+
+let vp = new fiVerifiableData.VP("id:1", "holder");
+vp.addVerifiableCredential(vc1);
+vp.addVerifiableCredential(vc2);
+ 
+const privateKeyBytes = Uint8Array.from(
+  Buffer.from(
+    "7b6df71975950d5ea15ac090c57d462f73d3a48644fbcf2c6d5db838adf136b5",
+    "hex"
+  )
+);
+let verificationDocument = new fiVerifiableData.VerificationDocument(
+  "",
+  privateKeyBytes,
+  null
+);
+
+vp.sign(
+  fiVerifiableData.Algorithm.EdDSA,
+  "purpose",
+  verificationDocument,
+  fiVerifiableData.ProofType.FiProof
+);
+console.log(vp.toObject());
+```
+
+#### Verify
+
+```javascript
+const fiVerifiableData = await import("fi-verifiable-data");
+ 
+const publicKeyBytes = Uint8Array.from(
+  Buffer.from(
+    "aa7f263d0a1a671a4c06ea22800c1391dd8974174f01d0e5a848fe51bdd1bcf8",
+    "hex"
+  )
+); 
+let verificationDocument = new fiVerifiableData.VerificationDocument(
+  "",
+  null,
+  publicKeyBytes
+);
+
+let result = vp.verify( 
+  verificationDocument
+); 
+``` 
