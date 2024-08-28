@@ -43,9 +43,7 @@ jobs:
 
   publish-cdn:
     permissions:
-      contents: read
-      pages: write
-      id-token: write
+      contents: write
     runs-on: ubuntu-latest
     environment:
       name: github-pages
