@@ -56,12 +56,16 @@ jobs:
         uses: jetli/wasm-pack-action@v0.4.0
       - name: build
         run: wasm-pack build --features wasm --target web
-      - name: move
-        run: mkdir _site && mv -v ./pkg/* _site
-      - name: Upload Artifact
-        uses: actions/upload-pages-artifact@v2
-        with:
-          path: "./_site"
-      - name: Deploy artifact
-        id: deployment
-        uses: actions/deploy-pages@v1
+      - name: commit
+        run: mkdir _site
+          cp index.html ./_site
+          cp -r examples ./_site
+          cp -r pkg ./_site
+          git checkout -B pages
+          rm -r pkg
+          rm -r examples
+          rm index.html
+          mv -v _site/* ./
+          git add .
+          git commit -m "Republish github pages"
+          git push origin pages
