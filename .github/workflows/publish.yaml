@@ -47,7 +47,6 @@ jobs:
       pages: write
       id-token: write
     runs-on: ubuntu-latest
-    needs: jekyll-build
     environment:
       name: github-pages
       url: ${{steps.deployment.outputs.page_url}}
