@@ -1,0 +1,28 @@
+{
+  "name": "fi-verifiable-data",
+  "collaborators": [
+    "Ravindu Wijegunawardhana <ravindu.w@gmail.com"
+  ],
+  "description": "VC and VP wrapper for rust and WASM. fi-digital-signatures crate is used to sign and verify the data objects.",
+  "version": "0.0.6",
+  "license": "MIT OR Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Fidenz/fi_verifiable_data"
+  },
+  "files": [
+    "fi_verifiable_data_bg.wasm",
+    "fi_verifiable_data.js",
+    "fi_verifiable_data.d.ts"
+  ],
+  "module": "fi_verifiable_data.js",
+  "types": "fi_verifiable_data.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ],
+  "keywords": [
+    "sign",
+    "verify",
+    "identity"
+  ]
+}
