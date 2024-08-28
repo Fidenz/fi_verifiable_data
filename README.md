@@ -2,8 +2,7 @@
 
 [![crates.io](https://buildstats.info/crate/fi_verifiable_data)](https://crates.io/crates/fi_verifiable_data)
 ![Test](https://github.com/Fidenz/fi_verifiable_data/actions/workflows/test.yaml/badge.svg)
-![Package publish](https://github.com/Fidenz/fi_verifiable_data/actions/workflows/publish.yaml/badge.svg)
-![Doc](https://github.com/Fidenz/fi_verifiable_data/actions/workflows/publish-doc.yaml/badge.svg)
+![Package publish](https://github.com/Fidenz/fi_verifiable_data/actions/workflows/publish.yaml/badge.svg) 
 
 **fi-verifiable-data** library is focused on the representation and validation for **Verifiable Credential** and **Verifiable Presentation**. [fi-digital-signatures]("https://github.com/Fidenz/fi_digital_signatures") crate is used to sign and verify VP and VC proofs. API documentation on [docs.rs](https://docs.rs/fi-verifiable-data/latest/fi_verifiable_data/)
 
