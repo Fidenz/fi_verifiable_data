@@ -6,6 +6,8 @@
 
 **fi-verifiable-data** library is focused on the representation and validation for **Verifiable Credential** and **Verifiable Presentation**. [fi-digital-signatures]("https://github.com/Fidenz/fi_digital_signatures") crate is used to sign and verify VP and VC proofs. API documentation on [docs.rs](https://docs.rs/fi-verifiable-data/latest/fi_verifiable_data/)
 
+CDN - <https://fidenz.github.io/fi_verifiable_data/pkg/fi_verifiable_data.js>
+
 ## Verifiable Credential
 
 ### Rust
